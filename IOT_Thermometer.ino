@@ -2,16 +2,22 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include <ESP8266WebServer.h>
 
 #ifndef STASSID
 #define STASSID "your-ssid"
 #define STAPSK  "your-password"
 #endif
 
-const char* ssid = STASSID;
-const char* password = STAPSK;
+ESP8266WebServer server;
+
+bool ota_flag = true;
+uint16_t time_elapsed = 0;
 
 void setup() {
+
+  pinMode(2, OUTPUT);
+  
   Serial.begin(115200);
   Serial.println("Booting");
   WiFi.mode(WIFI_STA);
@@ -22,14 +28,15 @@ void setup() {
   IPAddress gateway(192,168,1,1);
   IPAddress subnet(255,255,255,0);
 
-  WiFi.sotfAPConfig(localIp, gateway, subnet);
+  WiFi.softAPConfig(localIp, gateway, subnet);
+  WiFi.softAP("IOT_Thermometer");
   
-  WiFi.begin(ssid, password);
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    Serial.println("Connection Failed! Rebooting...");
-    delay(5000);
-    ESP.restart();
-  }
+//  WiFi.begin(ssid, password);
+//  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+//    Serial.println("Connection Failed! Rebooting...");
+//    delay(5000);
+//    ESP.restart();
+//  }
 
   // Port defaults to 8266
   // ArduinoOTA.setPort(8266);
@@ -79,8 +86,36 @@ void setup() {
   Serial.println("Ready");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+
+  server.on("/restart",[](){
+    server.send(200,"text/plain", "Restarting...");
+    delay(1000);
+    ESP.restart();
+  });
+
+  
+  server.on("/flash",[](){
+    server.send(200,"text/plain", "Ready to flash...");
+    ota_flag = true;
+    time_elapsed = 0;
+  });
+
+  server.begin();
 }
 
 void loop() {
-  ArduinoOTA.handle();
+  if(ota_flag)
+  {
+    uint16_t time_start = millis();
+    while(time_elapsed < 15000)
+    {
+      ArduinoOTA.handle();
+      time_elapsed = millis()-time_start;
+      delay(10);
+    }
+    ota_flag = false;
+  }
+  server.handleClient();
+  digitalWrite(2, !digitalRead(2));
+  delay(100);
 }
