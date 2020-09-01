@@ -4,23 +4,18 @@
 #include <ArduinoOTA.h>
 #include <ESP8266WebServer.h>
 
-#ifndef STASSID
-#define STASSID "your-ssid"
-#define STAPSK  "your-password"
-#endif
 
-ESP8266WebServer server;
+ESP8266WebServer server(80);
 
 bool ota_flag = true;
 uint16_t time_elapsed = 0;
 
 void setup() {
-
   pinMode(2, OUTPUT);
   
   Serial.begin(115200);
   Serial.println("Booting");
-  WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_AP);
   WiFi.disconnect();
   delay(100);
 
@@ -117,5 +112,5 @@ void loop() {
   }
   server.handleClient();
   digitalWrite(2, !digitalRead(2));
-  delay(100);
+  delay(1000);
 }
