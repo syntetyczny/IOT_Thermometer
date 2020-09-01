@@ -1,9 +1,16 @@
+//ESP related
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <ESP8266WebServer.h>
 
+//One Wire DS18B20 related
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+OneWire  ds(D6);
+DallasTemperature sensors(&ds);
 
 ESP8266WebServer server(80);
 
@@ -12,6 +19,8 @@ uint16_t time_elapsed = 0;
 
 void setup() {
   pinMode(2, OUTPUT);
+  
+  sensors.begin();
   
   Serial.begin(115200);
   Serial.println("Booting");
@@ -112,5 +121,21 @@ void loop() {
   }
   server.handleClient();
   digitalWrite(2, !digitalRead(2));
+
+/*One Wire */
+//#################################################
+  // call sensors.requestTemperatures() to issue a global temperature 
+  // request to all devices on the bus
+  Serial.print("Requesting temperatures...");
+  sensors.requestTemperatures(); // Send the command to get temperatures
+  Serial.println("DONE");
+  // After we got the temperatures, we can print them here.
+  // We use the function ByIndex, and as an example get the temperature from the first sensor only.
+  Serial.print("Temperature for the device 1 (index 0) is: ");
+  Serial.println(sensors.getTempCByIndex(0));  
+
+
+//#################################################
+/* One Wire */  
   delay(1000);
 }
