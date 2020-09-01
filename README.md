@@ -1,7 +1,10 @@
-#IOT Thermometer#
-##Specification##
+# IOT Thermometer #
+## Specification ##
+
 Device must be small and regulate cooling system temperature of absorbtion camping fridge.
+
 Hardware:
+
 * WEMOS D1
 * Relay shield
 * D18B20 Thermometer
