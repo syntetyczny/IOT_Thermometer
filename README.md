@@ -9,7 +9,9 @@ Hardware:
 * Relay shield
 * D18B20 Thermometer
 * protoboard
+
 Firmware:
+
 * OTA
 * Soft-AP
 * On-Off regulator with histeresis
