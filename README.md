@@ -3,6 +3,8 @@
 
 Device must be small and regulate cooling system temperature of absorbtion camping fridge.
 
+![alt text](./docs/schematic_bb.png "breadboard connection diagram")
+
 Hardware:
 
 * WEMOS D1
