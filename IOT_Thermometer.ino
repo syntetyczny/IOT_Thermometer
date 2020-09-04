@@ -16,6 +16,7 @@ ESP8266WebServer server(80);
 
 bool ota_flag = true;
 uint16_t time_elapsed = 0;
+String data = "";
 
 void setup() {
   pinMode(2, OUTPUT);
@@ -104,6 +105,10 @@ void setup() {
     time_elapsed = 0;
   });
 
+  server.on("/", [](){
+    server.send(200,"text/plain", "<h1>Temperature is</h1><h3>Data:</h3> <h4>"+ data +"</h4>");
+  });
+
   server.begin();
 }
 
@@ -132,7 +137,8 @@ void loop() {
   // After we got the temperatures, we can print them here.
   // We use the function ByIndex, and as an example get the temperature from the first sensor only.
   Serial.print("Temperature for the device 1 (index 0) is: ");
-  Serial.println(sensors.getTempCByIndex(0));  
+  Serial.println(sensors.getTempCByIndex(0));
+  data = sensors.getTempCByIndex(0);
 
 
 //#################################################
