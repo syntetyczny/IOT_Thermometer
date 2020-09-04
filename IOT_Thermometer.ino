@@ -106,7 +106,7 @@ void setup() {
   });
 
   server.on("/", [](){
-    server.send(200,"text/plain", "<h1>Temperature is</h1><h3>Data:</h3> <h4>"+ data +"</h4>");
+    server.send(200,"text/plain", "Temperature is: " + data);
   });
 
   server.begin();
