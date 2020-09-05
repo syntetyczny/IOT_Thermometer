@@ -9,7 +9,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-//#define RELAY_PIN D2
+#define RELAY_PIN D5
 #define FAN_OFF_TEMP 25
 #define HISTERESIS 5
 #define OVERSHOT 2
@@ -28,7 +28,7 @@ String system_status = "OK";
 
 void setup() {
   pinMode(2, OUTPUT);
-//  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(RELAY_PIN, OUTPUT);
     
   sensors.begin();
   
@@ -154,7 +154,7 @@ void loop() {
   //Check if temp reached it highest acceptable point and turn on fans
   if((data.toInt() > FAN_OFF_TEMP + HISTERESIS)&&(hist_flag==false))
     {
-//    digitalWrite(RELAY_PIN, true);
+    digitalWrite(RELAY_PIN, true);
     hist_flag = true;
     system_status = "FANS ON"; 
     }
@@ -162,14 +162,14 @@ void loop() {
   //Turn off fans and reset hist flag responsible for controll if fans are working
   if(data.toInt() < FAN_OFF_TEMP)
     {
-//    digitalWrite(RELAY_PIN, false);
+    digitalWrite(RELAY_PIN, false);
     hist_flag = false;
     system_status = "FANS OFF";       
     }
   //Turn off fans if temp reached maximum overshot temperature , set system status ERROR 
   if((data.toInt() > FAN_OFF_TEMP + OVERSHOT * HISTERESIS)&&(hist_flag==true))
     {
-//    digitalWrite(RELAY_PIN, false);
+    digitalWrite(RELAY_PIN, false);
     hist_flag = true;
     system_status = "ERROR"; 
     }
