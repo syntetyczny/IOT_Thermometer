@@ -9,18 +9,27 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+//#define RELAY_PIN D2
+#define FAN_OFF_TEMP 25
+#define HISTERESIS 5
+#define OVERSHOT 2
+
 OneWire  ds(D6);
 DallasTemperature sensors(&ds);
 
 ESP8266WebServer server(80);
 
 bool ota_flag = true;
+bool hist_flag = false;
+
 uint16_t time_elapsed = 0;
 String data = "";
+String system_status = "OK";
 
 void setup() {
   pinMode(2, OUTPUT);
-  
+//  pinMode(RELAY_PIN, OUTPUT);
+    
   sensors.begin();
   
   Serial.begin(115200);
@@ -106,7 +115,7 @@ void setup() {
   });
 
   server.on("/", [](){
-    server.send(200,"text/plain", "Temperature is: " + data);
+    server.send(200,"text/plain", "Temperature is: " + data + " System status: " + system_status);
   });
 
   server.begin();
@@ -125,7 +134,6 @@ void loop() {
     ota_flag = false;
   }
   server.handleClient();
-  digitalWrite(2, !digitalRead(2));
 
 /*One Wire */
 //#################################################
@@ -139,9 +147,32 @@ void loop() {
   Serial.print("Temperature for the device 1 (index 0) is: ");
   Serial.println(sensors.getTempCByIndex(0));
   data = sensors.getTempCByIndex(0);
-
-
 //#################################################
 /* One Wire */  
+  if(data.toInt() < 30) digitalWrite(2, !digitalRead(2));
+
+  //Check if temp reached it highest acceptable point and turn on fans
+  if((data.toInt() > FAN_OFF_TEMP + HISTERESIS)&&(hist_flag==false))
+    {
+//    digitalWrite(RELAY_PIN, true);
+    hist_flag = true;
+    system_status = "FANS ON"; 
+    }
+    
+  //Turn off fans and reset hist flag responsible for controll if fans are working
+  if(data.toInt() < FAN_OFF_TEMP)
+    {
+//    digitalWrite(RELAY_PIN, false);
+    hist_flag = false;
+    system_status = "FANS OFF";       
+    }
+  //Turn off fans if temp reached maximum overshot temperature , set system status ERROR 
+  if((data.toInt() > FAN_OFF_TEMP + OVERSHOT * HISTERESIS)&&(hist_flag==true))
+    {
+//    digitalWrite(RELAY_PIN, false);
+    hist_flag = true;
+    system_status = "ERROR"; 
+    }
+
   delay(1000);
 }
