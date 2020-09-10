@@ -19,3 +19,10 @@ Firmware:
 * On-Off regulator with histeresis
 * Temperature display at specific IP adress
 
+Power Consumption
+
+WiFi is turned off after 15 minutes of working to refuce power consumption.
+
+Power used in WiFi on mode is 0.66W .
+
+Power used in WiFi off mode is 0.25W .
