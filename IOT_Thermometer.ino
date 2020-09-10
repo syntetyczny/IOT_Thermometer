@@ -9,10 +9,13 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+//Parameters for thermal 2-state regulator
 #define RELAY_PIN D5
-#define FAN_OFF_TEMP 25
-#define HISTERESIS 5
-#define OVERSHOT 2
+#define FAN_OFF_TEMP 45
+#define HISTERESIS 10
+#define OVERSHOT 1.5
+#define WIFI_ACTIVE_TIME 15*60*1000
+#define RESET_ACTIVE_TIME 30*1000
 
 OneWire  ds(D6);
 DallasTemperature sensors(&ds);
@@ -27,7 +30,7 @@ String data = "";
 String system_status = "OK";
 
 void setup() {
-  pinMode(2, OUTPUT);
+//  pinMode(2, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
     
   sensors.begin();
@@ -45,26 +48,6 @@ void setup() {
   WiFi.softAPConfig(localIp, gateway, subnet);
   WiFi.softAP("IOT_Thermometer");
   
-//  WiFi.begin(ssid, password);
-//  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-//    Serial.println("Connection Failed! Rebooting...");
-//    delay(5000);
-//    ESP.restart();
-//  }
-
-  // Port defaults to 8266
-  // ArduinoOTA.setPort(8266);
-
-  // Hostname defaults to esp8266-[ChipID]
-  // ArduinoOTA.setHostname("myesp8266");
-
-  // No authentication by default
-  // ArduinoOTA.setPassword("admin");
-
-  // Password can be set with it's md5 value as well
-  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
-
   ArduinoOTA.onStart([]() {
     String type;
     if (ArduinoOTA.getCommand() == U_FLASH) {
@@ -125,7 +108,7 @@ void loop() {
   if(ota_flag)
   {
     uint16_t time_start = millis();
-    while(time_elapsed < 15000)
+    while(time_elapsed < RESET_ACTIVE_TIME)
     {
       ArduinoOTA.handle();
       time_elapsed = millis()-time_start;
@@ -134,6 +117,13 @@ void loop() {
     ota_flag = false;
   }
   server.handleClient();
+
+  if(millis()>WIFI_ACTIVE_TIME)
+  {
+  WiFi.disconnect(true); delay(5); // disable WIFI altogether
+  WiFi.mode(WIFI_OFF); delay(5);
+  WiFi.forceSleepBegin(); delay(5);
+  }
 
 /*One Wire */
 //#################################################
@@ -149,7 +139,7 @@ void loop() {
   data = sensors.getTempCByIndex(0);
 //#################################################
 /* One Wire */  
-  if(data.toInt() < 30) digitalWrite(2, !digitalRead(2));
+//  if(data.toInt() < 30) digitalWrite(2, !digitalRead(2));
 
   //Check if temp reached it highest acceptable point and turn on fans
   if((data.toInt() > FAN_OFF_TEMP + HISTERESIS)&&(hist_flag==false))
@@ -174,5 +164,5 @@ void loop() {
     system_status = "ERROR"; 
     }
 
-  delay(1000);
+//  delay(1000);
 }
